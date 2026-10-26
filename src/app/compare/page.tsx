@@ -16,6 +16,7 @@ interface ComparedProperty extends PropertyInputs {
 export default function ComparePage() {
   const [properties, setProperties] = useState<ComparedProperty[]>([]);
   const [currentInput, setCurrentInput] = useState<PropertyInputs>({
+    propertyName: "Property",
     purchasePrice: 250000,
     downPayment: 50000,
     monthlyRent: 2000,
