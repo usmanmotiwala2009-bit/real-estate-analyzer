@@ -3,6 +3,7 @@
  */
 
 export interface PropertyInputs {
+  propertyName: string;
   purchasePrice: number;
   downPayment: number;
   monthlyRent: number;
@@ -38,11 +39,17 @@ export interface CalculationResults {
   annualDebtService: number;
   dealScore: number;
   scoreBreakdown: {
-    cashFlow: number;
-    cocReturn: number;
-    netYield: number;
-    grossYield: number;
-    breakEvenMargin: number;
+    cashFlow: { earned: number; max: number };
+    cocReturn: { earned: number; max: number };
+    netYield: { earned: number; max: number };
+    grossYield: { earned: number; max: number };
+    breakEvenMargin: { earned: number; max: number };
+  };
+  improvementSuggestions: {
+    rentIncreaseNeeded: number;
+    priceReductionNeeded: number;
+    downPaymentIncreaseNeeded: number;
+    interestRateReductionNeeded: number;
   };
 }
 
@@ -113,23 +120,31 @@ export function analyzeDeal(inputs: PropertyInputs): CalculationResults {
   const annualDebtService = monthlyMortgagePayment * 12;
 
   // Deal Score Calculation (0-100)
-  // Cash flow: 30 points (Positive cash flow > $200/mo is great)
   const cashFlowScore = Math.min(30, Math.max(0, (monthlyCashFlow / 500) * 30));
-
-  // Cash-on-cash: 25 points (10% is a good baseline)
   const cocScore = Math.min(25, Math.max(0, (cashOnCashReturn / 10) * 25));
-
-  // Net Rental Yield: 20 points (5% is baseline)
   const netYieldScore = Math.min(20, Math.max(0, (netRentalYield / 5) * 20));
-
-  // Gross Rental Yield: 15 points (8% is baseline)
   const grossYieldScore = Math.min(15, Math.max(0, (grossRentalYield / 8) * 15));
-
-  // Break-even safety margin: 10 points (Rent is 20% above break-even)
   const safetyMargin = (monthlyRent - breakEvenRent) / monthlyRent;
   const breakEvenScore = Math.min(10, Math.max(0, (safetyMargin / 0.2) * 10));
 
   const dealScore = Math.round(cashFlowScore + cocScore + netYieldScore + grossYieldScore + breakEvenScore);
+
+  // Improvement Scenarios (calculate what is needed to reach $0 monthly cash flow)
+  const rentIncreaseNeeded = Math.max(0, breakEvenRent - monthlyRent);
+
+  // For purchase price reduction: Target a price where mortgage payment + expenses = rent
+  const targetMortgagePayment = effectiveRentalIncome - totalMonthlyOperatingExpenses;
+  let priceReductionNeeded = 0;
+  if (targetMortgagePayment < 0) {
+    const monthlyRate = mortgageInterestRate / 100 / 12;
+    const n = mortgageTerm * 12;
+    const targetPrincipal = targetMortgagePayment / (monthlyRate * Math.pow(1 + monthlyRate, n) / (Math.pow(1 + monthlyRate, n) - 1));
+    priceReductionNeeded = Math.max(0, mortgagePrincipal - targetPrincipal);
+  }
+
+  const downPaymentIncreaseNeeded = Math.max(0, -monthlyCashFlow * (1 / (mortgageInterestRate / 100 / 12)));
+
+  const interestRateReductionNeeded = Math.max(0, (monthlyMortgagePayment - targetMortgagePayment) / (mortgagePrincipal * 0.01));
 
   return {
     mortgagePrincipal,
@@ -147,11 +162,17 @@ export function analyzeDeal(inputs: PropertyInputs): CalculationResults {
     annualDebtService,
     dealScore,
     scoreBreakdown: {
-      cashFlow: Math.round(cashFlowScore),
-      cocReturn: Math.round(cocScore),
-      netYield: Math.round(netYieldScore),
-      grossYield: Math.round(grossYieldScore),
-      breakEvenMargin: Math.round(breakEvenScore),
+      cashFlow: { earned: Math.round(cashFlowScore), max: 30 },
+      cocReturn: { earned: Math.round(cocScore), max: 25 },
+      netYield: { earned: Math.round(netYieldScore), max: 20 },
+      grossYield: { earned: Math.round(grossYieldScore), max: 15 },
+      breakEvenMargin: { earned: Math.round(breakEvenScore), max: 10 },
+    },
+    improvementSuggestions: {
+      rentIncreaseNeeded,
+      priceReductionNeeded,
+      downPaymentIncreaseNeeded,
+      interestRateReductionNeeded,
     }
   };
 }
@@ -165,10 +186,6 @@ export function calculateProjections(inputs: PropertyInputs, results: Calculatio
 
   const { purchasePrice, appreciationRate } = inputs;
   const { monthlyMortgagePayment } = results;
-
-  // For simplicity in this MVP, we calculate mortgage balance using a basic approximation
-  // or we could implement a full amortization schedule.
-  // Let's implement a simple amortization loop.
 
   const principal = results.mortgagePrincipal;
   const monthlyRate = inputs.mortgageInterestRate / 100 / 12;
