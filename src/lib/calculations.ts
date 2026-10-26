@@ -132,7 +132,6 @@ export function analyzeDeal(inputs: PropertyInputs): CalculationResults {
   // Improvement Scenarios (calculate what is needed to reach $0 monthly cash flow)
   const rentIncreaseNeeded = Math.max(0, breakEvenRent - monthlyRent);
 
-  // For purchase price reduction: Target a price where mortgage payment + expenses = rent
   const targetMortgagePayment = effectiveRentalIncome - totalMonthlyOperatingExpenses;
   let priceReductionNeeded = 0;
   if (targetMortgagePayment < 0) {
@@ -142,7 +141,7 @@ export function analyzeDeal(inputs: PropertyInputs): CalculationResults {
     priceReductionNeeded = Math.max(0, mortgagePrincipal - targetPrincipal);
   }
 
-  const downPaymentIncreaseNeeded = Math.max(0, -monthlyCashFlow * (1 / (mortgageInterestRate / 100 / 12)));
+  const downPaymentIncreaseNeeded = Math.max(0, -monthlyCashFlow / (mortgageInterestRate / 100 / 12));
 
   const interestRateReductionNeeded = Math.max(0, (monthlyMortgagePayment - targetMortgagePayment) / (mortgagePrincipal * 0.01));
 

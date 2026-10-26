@@ -20,10 +20,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-slate-50 text-slate-900 min-h-screen flex flex-col`}>
+      <body className={`${inter.className} bg-slate-900 text-white min-h-screen flex flex-col`}>
         <Navbar />
         <main className="flex-grow">{children}</main>
-        <Suspense fallback={<footer className="bg-slate-50 border-t border-slate-200 py-12" />}>
+        <Suspense fallback={<footer className="bg-slate-900 border-t border-slate-800 py-12" />}>
           <Footer />
         </Suspense>
       </body>

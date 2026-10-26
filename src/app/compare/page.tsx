@@ -64,12 +64,12 @@ export default function ComparePage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      <h1 className="text-4xl font-bold text-slate-900 mb-8 text-center">Compare Properties</h1>
+    <div className="min-h-screen bg-slate-900 text-white max-w-7xl mx-auto px-4 py-12">
+      <h1 className="text-4xl font-bold text-white mb-8 text-center">Compare Properties</h1>
 
       {properties.length < 3 && (
-        <Card className="mb-12 p-8">
-          <h2 className="text-xl font-semibold mb-6">Add Property to Compare</h2>
+        <Card className="mb-12 p-8 bg-slate-800 border-slate-700 text-white">
+          <h2 className="text-xl font-semibold mb-6 text-white border-b border-slate-700 pb-2">Add Property to Compare</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Input
               label="Property Name"
@@ -98,16 +98,16 @@ export default function ComparePage() {
 
       {properties.length > 0 && (
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse bg-white rounded-xl shadow-sm overflow-hidden">
+          <table className="w-full text-left border-collapse bg-slate-800 rounded-xl shadow-sm overflow-hidden border border-slate-700">
             <thead>
-              <tr className="bg-slate-100 border-b border-slate-200">
-                <th className="p-4 font-semibold text-slate-700">Metric</th>
+              <tr className="bg-slate-700 border-b border-slate-600">
+                <th className="p-4 font-semibold text-slate-300">Metric</th>
                 {properties.map(p => (
-                  <th key={p.id} className="p-4 font-semibold text-slate-700 text-center relative">
+                  <th key={p.id} className="p-4 font-semibold text-white text-center relative">
                     {p.name}
                     <button
                       onClick={() => removeProperty(p.id)}
-                      className="absolute top-2 right-2 text-slate-400 hover:text-red-500 text-xs"
+                      className="absolute top-2 right-2 text-slate-400 hover:text-rose-400 text-xs transition-colors"
                     >
                       Remove
                     </button>
@@ -115,56 +115,79 @@ export default function ComparePage() {
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
+            <tbody className="divide-y divide-slate-700">
               <tr>
-                <td className="p-4 font-medium text-slate-600">Purchase Price</td>
+                <td className="p-4 font-medium text-slate-400">Purchase Price</td>
                 {properties.map(p => (
-                  <td key={p.id} className="p-4 text-center font-semibold">${p.purchasePrice.toLocaleString()}</td>
+                  <td key={p.id} className="p-4 text-center font-semibold text-white">${p.purchasePrice.toLocaleString()}</td>
                 ))}
               </tr>
               <tr>
-                <td className="p-4 font-medium text-slate-600">Monthly Rent</td>
+                <td className="p-4 font-medium text-slate-400">Monthly Rent</td>
                 {properties.map(p => (
-                  <td key={p.id} className="p-4 text-center font-semibold">${p.monthlyRent.toLocaleString()}</td>
+                  <td key={p.id} className="p-4 text-center font-semibold text-white">${p.monthlyRent.toLocaleString()}</td>
                 ))}
               </tr>
               <tr>
-                <td className="p-4 font-medium text-slate-600">Monthly Cash Flow</td>
+                <td className="p-4 font-medium text-slate-400">Monthly Cash Flow</td>
+                {properties.map(p => {
+                  const isBest = p.results.monthlyCashFlow === getBestValue('monthlyCashFlow', 'max');
+                  return (
+                    <td key={p.id} className={`p-4 text-center font-bold ${p.results.monthlyCashFlow > 0 ? 'text-emerald-400' : 'text-rose-400'} ${isBest ? 'bg-emerald-400/10' : ''}`}>
+                      ${p.results.monthlyCashFlow.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    </td>
+                  );
+                })}
+              </tr>
+              <tr>
+                <td className="p-4 font-medium text-slate-400">Annual Cash Flow</td>
                 {properties.map(p => (
-                  <td key={p.id} className={`p-4 text-center font-bold ${p.results.monthlyCashFlow > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                    ${p.results.monthlyCashFlow.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                  </td>
+                  <td key={p.id} className="p-4 text-center font-semibold text-white">${p.results.annualCashFlow.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
                 ))}
               </tr>
               <tr>
-                <td className="p-4 font-medium text-slate-600">Annual Cash Flow</td>
-                {properties.map(p => (
-                  <td key={p.id} className="p-4 text-center font-semibold">${p.results.annualCashFlow.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
-                ))}
+                <td className="p-4 font-medium text-slate-400">Gross Yield</td>
+                {properties.map(p => {
+                  const isBest = p.results.grossRentalYield === getBestValue('grossRentalYield', 'max');
+                  return (
+                    <td key={p.id} className={`p-4 text-center font-semibold text-white ${isBest ? 'text-emerald-400 bg-emerald-400/10' : ''}`}>
+                      {p.results.grossRentalYield.toFixed(2)}%
+                    </td>
+                  );
+                })}
               </tr>
               <tr>
-                <td className="p-4 font-medium text-slate-600">Gross Yield</td>
-                {properties.map(p => (
-                  <td key={p.id} className="p-4 text-center font-semibold">{p.results.grossRentalYield.toFixed(2)}%</td>
-                ))}
+                <td className="p-4 font-medium text-slate-400">Net Yield</td>
+                {properties.map(p => {
+                  const isBest = p.results.netRentalYield === getBestValue('netRentalYield', 'max');
+                  return (
+                    <td key={p.id} className={`p-4 text-center font-semibold text-white ${isBest ? 'text-emerald-400 bg-emerald-400/10' : ''}`}>
+                      {p.results.netRentalYield.toFixed(2)}%
+                    </td>
+                  );
+                })}
               </tr>
               <tr>
-                <td className="p-4 font-medium text-slate-600">Net Yield</td>
-                {properties.map(p => (
-                  <td key={p.id} className="p-4 text-center font-semibold">{p.results.netRentalYield.toFixed(2)}%</td>
-                ))}
+                <td className="p-4 font-medium text-slate-400">Cash-on-Cash</td>
+                {properties.map(p => {
+                  const isBest = p.results.cashOnCashReturn === getBestValue('cashOnCashReturn', 'max');
+                  return (
+                    <td key={p.id} className={`p-4 text-center font-semibold text-white ${isBest ? 'text-emerald-400 bg-emerald-400/10' : ''}`}>
+                      {p.results.cashOnCashReturn.toFixed(2)}%
+                    </td>
+                  );
+                })}
               </tr>
-              <tr>
-                <td className="p-4 font-medium text-slate-600">Cash-on-Cash</td>
-                {properties.map(p => (
-                  <td key={p.id} className="p-4 text-center font-semibold">{p.results.cashOnCashReturn.toFixed(2)}%</td>
-                ))}
-              </tr>
-              <tr className="bg-indigo-50">
-                <td className="p-4 font-bold text-indigo-900">Deal Score</td>
-                {properties.map(p => (
-                  <td key={p.id} className="p-4 text-center font-black text-indigo-600 text-xl">{p.results.dealScore}</td>
-                ))}
+              <tr className="bg-indigo-500/10">
+                <td className="p-4 font-bold text-indigo-400">Deal Score</td>
+                {properties.map(p => {
+                  const isBest = p.results.dealScore === getBestValue('dealScore', 'max');
+                  return (
+                    <td key={p.id} className={`p-4 text-center font-black text-indigo-400 text-xl ${isBest ? 'bg-indigo-500/20' : ''}`}>
+                      {p.results.dealScore}
+                    </td>
+                  );
+                })}
               </tr>
             </tbody>
           </table>

@@ -16,9 +16,9 @@ export const MetricDisplay: React.FC<MetricDisplayProps> = ({
   className = ''
 }) => {
   const trendColors = {
-    positive: 'text-emerald-600',
-    negative: 'text-red-600',
-    neutral: 'text-slate-600',
+    positive: 'text-emerald-400',
+    negative: 'text-rose-400',
+    neutral: 'text-slate-400',
   };
 
   return (
